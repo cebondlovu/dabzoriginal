@@ -1,0 +1,161 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@color/primaryLight"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools">
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="4dp"
+            android:background="@drawable/post_panel">
+
+            <de.hdodenhof.circleimageview.CircleImageView
+                android:id="@+id/profile_pr_img"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:layout_marginEnd="5dp" />
+
+            <TextView
+                android:id="@+id/username_pr_txt"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_centerInParent="true"
+                android:layout_marginEnd="2dp"
+                android:layout_toEndOf="@+id/profile_pr_img"
+                android:maxLength="30"
+                android:textColor="@color/white"
+                android:textSize="16sp"
+                android:textStyle="bold" />
+
+            <ImageView
+                android:id="@+id/verified_pr_img"
+                android:layout_width="18dp"
+                android:layout_height="18dp"
+                android:layout_alignParentTop="true"
+                android:layout_centerInParent="true"
+                android:layout_marginStart="1dp"
+                android:layout_marginEnd="5dp"
+                android:layout_toEndOf="@id/username_pr_txt"
+                android:contentDescription="@string/todo"
+                android:src="@drawable/ic_twotone_verified_24"
+                android:visibility="gone" />
+
+            <ImageView
+                android:id="@+id/more_pr_img"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:layout_alignParentEnd="true"
+                android:layout_gravity="end"
+                android:layout_marginStart="5dp"
+                android:contentDescription="@string/todo"
+                android:padding="12dp"
+                android:src="@drawable/ic_baseline_more_vert_24"
+                app:tint="@color/white" />
+        </RelativeLayout>
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+            <ImageView
+                android:id="@+id/media_pr_img"
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:scaleType="fitXY"
+                app:layout_constraintDimensionRatio="0.9:1"
+                tools:ignore="MissingConstraints"
+                android:contentDescription="@string/todo" />
+        </androidx.constraintlayout.widget.ConstraintLayout>
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="5dp">
+
+            <ImageView
+                android:id="@+id/flame_pr_img"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:padding="12dp"
+                android:src="@drawable/ic_outline_local_fire_department_24" />
+            <TextView
+                android:id="@+id/flame_pr_txt"
+                android:layout_width="wrap_content"
+                android:layout_height="48dp"
+                android:textColor="@color/hint_clr"
+                android:textStyle="bold"
+                android:gravity="start|center_vertical"
+                android:layout_marginStart="5dp"
+                android:layout_toEndOf="@id/flame_pr_img"
+                android:layout_centerInParent="true"
+                android:maxLines="1"/>
+
+            <ImageView
+                android:id="@+id/comment_pr_img"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:layout_marginStart="5dp"
+                android:layout_toEndOf="@id/flame_pr_txt"
+                android:contentDescription="@string/todo"
+                android:padding="14dp"
+                android:src="@drawable/ic_outline_chat_bubble_outline_24" />
+
+            <TextView
+                android:id="@+id/comment_pr_txt"
+                android:layout_width="wrap_content"
+                android:layout_height="48dp"
+                android:layout_centerInParent="true"
+                android:layout_marginStart="5dp"
+                android:layout_toStartOf="@id/save_pr_img"
+                android:layout_toEndOf="@id/comment_pr_img"
+                android:gravity="start|center_vertical"
+                android:maxLines="1"
+                android:textColor="@color/hint_clr"
+                android:textStyle="bold" />
+
+            <ImageView
+                android:id="@+id/save_pr_img"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:layout_alignParentEnd="true"
+                android:contentDescription="@string/todo"
+                android:padding="12dp"
+                android:src="@drawable/ic_baseline_turned_in_not_24" />
+        </RelativeLayout>
+        <TextView
+            android:id="@+id/datetime_pr_txt"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="2dp"
+            android:layout_marginBottom="2dp"
+            android:layout_marginStart="10dp"
+            android:textColor="@color/hint_clr"/>
+        <TextView
+            android:id="@+id/author_pr_txt"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="2dp"
+            android:layout_marginBottom="2dp"
+            android:layout_marginStart="10dp"
+            android:textColor="@color/white"
+            android:textStyle="bold"/>
+        <com.hendraanggrian.appcompat.widget.SocialTextView
+            android:id="@+id/caption_pr_txt"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="10dp"
+            android:padding="2dp"
+            android:layout_marginBottom="4dp"
+            android:maxLines="4"
+            android:textColor="@color/hint_clr"
+            app:mentionColor="@color/comment"
+            app:hashtagColor="@color/main_clr"/>
+    </LinearLayout>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

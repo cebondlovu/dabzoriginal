@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "394978148614",
+    "project_id": "deep-keys-music",
+    "storage_bucket": "deep-keys-music.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:394978148614:android:4db5094014a77386151e87",
+        "android_client_info": {
+          "package_name": "com.softcrypt.deepkeysmusic"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "394978148614-abu9chng96hcbiilrhpnt5iokroah6q0.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.softcrypt.deepkeysmusic",
+            "certificate_hash": "f5aacf0b08cd9485497ba9f6271ffdb24957461f"
+          }
+        },
+        {
+          "client_id": "394978148614-872o06ltpb3ghsjpqcgfur57bcrhnkvm.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyChCNGtqaWpdJMEcyFHcwhS5PeHVcJmM3Q"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "394978148614-872o06ltpb3ghsjpqcgfur57bcrhnkvm.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+    <PreferenceCategory android:title="General Options">
+        <CheckBoxPreference
+            android:key="lock_favorites"
+            android:defaultValue="false"
+            android:title="Lock Favourites"
+            android:summary="Lock favourite messages"/>
+        <SwitchPreference
+            android:key="awesome_mode"
+            android:defaultValue="false"
+            android:switchTextOn="Yes"
+            android:switchTextOff="No"
+            android:title="Awesome mode"
+            android:summary="Something special to do while the app looks good"/>
+    </PreferenceCategory>
+    <PreferenceCategory android:title="Application Settings">
+        <SwitchPreference
+            android:key="dark_mode"
+            android:defaultValue="false"
+            android:switchTextOn="Yes"
+            android:switchTextOff="No"
+            android:title="Super Dark Mode"
+            android:summary="Changes the entire app and its icons to greay and black"/>
+        <Preference
+            android:key="interface"
+            android:title="Interface"
+            android:singleLineTitle="true"/>
+        <Preference
+            android:key="language"
+            android:title="Language"
+            android:singleLineTitle="true"/>
+    </PreferenceCategory>
+
+    <Preference android:key="question"
+        android:title="Ask a Question"
+        android:singleLineTitle="true" />
+    <Preference android:key="faq"
+        android:title="Dabz FAQ"
+        android:singleLineTitle="true" />
+</PreferenceScreen>

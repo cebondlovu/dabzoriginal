@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="primaryDark">#272727</color>
+    <color name="primaryLight">#131313</color>
+    <color name="main_clr">#00FF0B</color>
+    <color name="secondaryDark">#202020</color>
+    <color name="secondaryLight">#4A4A4A</color>
+    <color name="secondary_main_clr">#DDDDDD</color>
+    <color name="white">#FFFFFFFF</color>
+    <color name="hint_clr">#A5A5A5</color>
+    <color name="copy_clr">#616161</color>
+
+    <color name="dt_primaryDark">#171717</color>
+    <color name="dt_primaryLight">#303030</color>
+    <color name="dt_main_clr">#00FF0B</color>
+    <color name="dt_secondaryDark">#202020</color>
+    <color name="dt_secondaryLight">#4A4A4A</color>
+    <color name="dt_secondary_main_clr">#DDDDDD</color>
+    <color name="dt_white">#FFFFFFFF</color>
+
+    <color name="flames">#F15501</color>
+    <color name="comment">#0C86E6</color>
+    <color name="verified">#0C86E6</color>
+    <color name="transparentDark">#80000000</color>
+    <color name="transparentLight">#00000000</color>
+
+    <color name="fail">#910000</color>
+    <color name="success">#FFFFFF</color>
+    <color name="warning">#B67300</color>
+
+    <color name="fade_notice">#F5323232</color>
+    <color name="recording_red">#D30000</color>
+
+    <color name="black">#000000</color>
+    <color name="blue_color_picker">#0066FF</color>
+    <color name="brown_color_picker">#AF593E</color>
+    <color name="green_color_picker">#01A368</color>
+    <color name="orange_color_picker">#FF861F</color>
+    <color name="red_color_picker">#ED0A3F</color>
+    <color name="red_orange_color_picker">#FF3F34</color>
+    <color name="sky_blue_color_picker">#76D7EA</color>
+    <color name="violet_color_picker">#8359A3</color>
+    <color name="yellow_color_picker">#FBE870</color>
+    <color name="yellow_green_color_picker">#C5E17A</color>
+    <color name="tool_bg">#151414</color>
+    <color name="semi_black_transparent">#99000000</color>
+</resources>

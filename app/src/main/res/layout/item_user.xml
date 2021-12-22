@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:padding="8dp"
+    android:layout_margin="2dp"
+    android:background="@color/primaryLight">
+    <de.hdodenhof.circleimageview.CircleImageView
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:id="@+id/profile_iu_img"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"/>
+    <RelativeLayout
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="4dp"
+        android:layout_marginEnd="4dp"
+        android:orientation="vertical"
+        app:layout_constraintStart_toEndOf="@id/profile_iu_img"
+        app:layout_constraintTop_toTopOf="@id/profile_iu_img"
+        app:layout_constraintEnd_toStartOf="@id/follow_iu_btn"
+        app:layout_constraintBottom_toBottomOf="@id/profile_iu_img">
+
+        <TextView
+            android:id="@+id/username_iu_txt"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentStart="true"
+            android:layout_alignParentTop="true"
+            android:maxLength="30"
+            android:maxLines="1"
+            android:textColor="@color/white"
+            android:textStyle="bold" />
+
+        <ImageView
+            android:id="@+id/verified_iu_img"
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            android:layout_marginStart="2dp"
+            android:layout_alignParentTop="true"
+            android:visibility="gone"
+            android:src="@drawable/ic_twotone_verified_24"
+            android:layout_toEndOf="@id/username_iu_txt"
+            android:contentDescription="@string/todo" />
+
+        <TextView
+            android:id="@+id/name_iu_txt"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/username_iu_txt"
+            android:layout_alignParentStart="true"
+            android:maxLines="1"
+            android:maxLength="35"
+            android:textColor="@color/hint_clr" />
+    </RelativeLayout>
+
+    <androidx.appcompat.widget.AppCompatButton
+        android:id="@+id/follow_iu_btn"
+        android:layout_width="wrap_content"
+        android:layout_height="48dp"
+        android:layout_marginEnd="5dp"
+        android:background="@drawable/button_item_view"
+        android:padding="8dp"
+        android:textColor="@color/hint_clr"
+        android:textSize="12sp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:ignore="SpeakableTextPresentCheck" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

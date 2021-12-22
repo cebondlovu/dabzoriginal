@@ -1,0 +1,37 @@
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <!-- Base application theme. -->
+    <style name="Theme.DeepKeysMusic" parent="Theme.MaterialComponents.DayNight.DarkActionBar">
+        <!-- Primary brand color. -->
+        <item name="colorPrimary">@color/dt_primaryDark</item>
+        <item name="colorPrimaryVariant">@color/dt_primaryLight</item>
+        <item name="colorOnPrimary">@color/dt_main_clr</item>
+        <!-- Secondary brand color. -->
+        <item name="colorSecondary">@color/dt_secondaryDark</item>
+        <item name="colorSecondaryVariant">@color/dt_secondaryLight</item>
+        <item name="colorOnSecondary">@color/dt_secondary_main_clr</item>
+        <!-- Status bar color. -->
+        <item name="android:statusBarColor" tools:targetApi="l">?attr/colorPrimaryVariant</item>
+        <!-- Customize your theme here. -->
+    </style>
+
+    <style name="Theme.DeepKeysMusic.NoActionBar">
+        <item name="windowActionBar">false</item>
+        <item name="windowNoTitle">true</item>
+    </style>
+
+    <style name="EditText">
+        <item name="android:singleLine">true</item>
+        <item name="colorControlNormal">#FFFFFF</item>
+        <item name="colorControlActivated">#FFFFFF</item>
+        <item name="android:textColorPrimary">#FFFFFF</item>
+        <item name="android:textSize">14sp</item>
+    </style>
+
+    <style name="Spinner">
+        <item name="android:textColor">@color/hint_clr</item>
+        <item name="android:spinnerMode">dropdown</item>
+        <item name="background">@color/primaryLight</item>
+        <item name="backgroundTint">@color/hint_clr</item>
+        <item name="popupMenuBackground">@color/primaryLight</item>
+    </style>
+</resources>
