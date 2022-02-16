@@ -4,6 +4,7 @@ import static java.util.Observable.*;
 
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -31,6 +32,7 @@ import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
+import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.hendraanggrian.appcompat.widget.SocialAutoCompleteTextView;
@@ -44,6 +46,8 @@ import com.softcrypt.deepkeysmusic.common.DisplayableError;
 import com.softcrypt.deepkeysmusic.common.ParseData;
 import com.softcrypt.deepkeysmusic.model.Comment;
 import com.softcrypt.deepkeysmusic.tools.InternetConnected;
+import com.softcrypt.deepkeysmusic.viewModels.CommentViewModel;
+import com.softcrypt.deepkeysmusic.viewModels.MainViewModel;
 
 import java.io.BufferedOutputStream;
 import java.io.DataOutputStream;
@@ -52,12 +56,15 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Random;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Logger;
+
+import javax.inject.Inject;
 
 import de.hdodenhof.circleimageview.CircleImageView;
 import io.reactivex.Observable;
@@ -87,8 +94,18 @@ public class CommentAct extends BaseActivity implements LoaderManager.LoaderCall
     MediaRecorder mediaRecorder;
     MediaPlayer mediaPlayer;
     File asd;
-    CountDownTimer cdTimer, mpTimer;
-    Disposable asdd = new CompositeDisposable();
+    CountDownTimer cdTimer;
+
+    @Inject
+    ViewModelProvider.Factory viewModelFactory;
+    public static CommentViewModel commentViewModel;
+
+    private int mTotalItemCount = 0;
+    private int mLastVisibleItemPosition;
+    private boolean mIsLoading = false;
+    private int mCommentsPerPage = 4, count = 0;
+
+    private HashMap<String, String> loadedCommentsList = new HashMap<>();
 
     @Override
     protected void onStart() {
@@ -99,6 +116,9 @@ public class CommentAct extends BaseActivity implements LoaderManager.LoaderCall
         authorId = intent.getStringExtra(ParseData.$AUTHOR_ID);
         firebaseUser = FirebaseAuth.getInstance().getCurrentUser();
         displayableError = DisplayableError.getInstance(this);
+
+        commentViewModel = new ViewModelProvider(this, viewModelFactory)
+                .get(CommentViewModel.class);
     }
 
     @RequiresApi(api = Build.VERSION_CODES.O)
@@ -107,36 +127,12 @@ public class CommentAct extends BaseActivity implements LoaderManager.LoaderCall
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_comment);
         ((BaseApplication)getApplication()).getAppComponent().injectCommentAct(this);
+        commentViewModel = new ViewModelProvider(this, viewModelFactory)
+                .get(CommentViewModel.class);
         recordingContainer = findViewById(R.id.recording_container_c);
 
         deleteRecordingImg = findViewById(R.id.delete_recording_c_img);
-        deleteRecordingImg.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (deleteRecordingImg.getTag().equals("stop")) {
-                    if(recordImg.getTag().equals("recording")) {
-                        mediaRecorder.stop();
-                        cdTimer.cancel();
-                    }
-
-                    if(recordImg.getTag().equals("play")) {
-                        mediaPlayer.stop();
-                        cdTimer.cancel();
-                    }
-
-                    recordImg.setImageResource(R.drawable.ic_baseline_play_arrow_24);
-                    recordImg.setTag("play");
-                    deleteRecordingImg.setImageResource(R.drawable.ic_baseline_delete_24);
-                    deleteRecordingImg.setTag("delete");
-                } else {
-                    asd.delete();
-                    recordImg.setImageResource(R.drawable.ic_baseline_mic_24);
-                    recordImg.setTag("record");
-                    recordingContainer.setVisibility(View.GONE);
-                    commentEdt.setVisibility(View.VISIBLE);
-                }
-            }
-        });
+        deleteRecordingImg.setOnClickListener(this::deleteComment);
 
         recordingProgressTxt = findViewById(R.id.recording_progress_c_txt);
 
@@ -145,68 +141,14 @@ public class CommentAct extends BaseActivity implements LoaderManager.LoaderCall
         recordImg = findViewById(R.id.record_uc_img);
         recordImg.setImageResource(R.drawable.ic_baseline_mic_24);
         recordImg.setTag("record");
-        recordImg.setOnClickListener(new View.OnClickListener() {
-            @RequiresApi(api = Build.VERSION_CODES.Q)
-            @Override
-            public void onClick(View v) {
-                if (recordImg.getTag().equals("recording")) {
-                    mediaRecorder.stop();
-                    recordImg.setImageResource(R.drawable.ic_baseline_mic_24);
-                    recordImg.setTag("record");
-                    recordingContainer.setVisibility(View.GONE);
-                    commentEdt.setVisibility(View.VISIBLE);
-                } else if (recordImg.getTag().equals("record")) {
-                    if(Build.VERSION.SDK_INT > Build.VERSION_CODES.O)
-                        asd = new File(getExternalFilesDir("Data"),File.separator+"Dabz/Comments/Recordings/"+UUID.randomUUID().toString()+".3gp");
-                    else
-                        asd = new File(Environment.getExternalStorageDirectory(), File.separator+"Dabz/Comments/Recordings/"+UUID.randomUUID().toString()+".3gp");
-                    try {
-                        asd.createNewFile();
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                    mediaRecorder = new MediaRecorder();
-                    mediaRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
-                    mediaRecorder.setOutputFormat(MediaRecorder.OutputFormat.THREE_GPP);
-                    mediaRecorder.setOutputFile(asd);
-                    mediaRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AMR_WB);
-                    try {
-                        recordingProgress.setMax(180);
-                        mediaRecorder.prepare();
-                        mediaRecorder.start();
-                        showAnimation(recordingProgress);
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-
-                    recordImg.setImageResource(R.drawable.ic_baseline_mic_red__24);
-                    recordImg.setTag("recording");
-                    deleteRecordingImg.setImageResource(R.drawable.ic_baseline_stop_24);
-                    deleteRecordingImg.setTag("stop");
-                    recordingContainer.setVisibility(View.VISIBLE);
-                    commentEdt.setVisibility(View.GONE);
-                } else {
-                    mediaPlayer = new MediaPlayer();
-                    mediaPlayer.reset();
-                    try {
-                        mediaPlayer.setDataSource(String.valueOf(asd));
-                        mediaPlayer.prepare();
-                        mediaPlayer.start();
-                        showPlayAnimation(recordingProgress);
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                    deleteRecordingImg.setImageResource(R.drawable.ic_baseline_stop_24);
-                    deleteRecordingImg.setTag("stop");
-                }
-            }
-        });
+        recordImg.setOnClickListener(this::recordVn);
 
         emojiImg = findViewById(R.id.emoji_uc_img);
 
         progress = findViewById(R.id.progress_c_pb);
 
         sendImg = findViewById(R.id.post_c_img);
+        sendImg.setOnClickListener(this::postComment);
 
         closeImg = findViewById(R.id.back_c_img);
         closeImg.setOnClickListener(this::close);
@@ -221,7 +163,7 @@ public class CommentAct extends BaseActivity implements LoaderManager.LoaderCall
                 mLayoutManager.getOrientation());
         commentsRecycler.addItemDecoration(dividerItemDecoration);
 
-        commentAdapter = new CommentAdapter(commentList, this);
+        commentAdapter = new CommentAdapter(commentViewModel, this, this);
         commentsRecycler.setAdapter(commentAdapter);
 
         noCommentsTxt = findViewById(R.id.no_comments_c_txt);
@@ -256,6 +198,110 @@ public class CommentAct extends BaseActivity implements LoaderManager.LoaderCall
         getLoaderManager().initLoader(LDR_BASIC_ID, Bundle.EMPTY, this);
     }
 
+    private void deleteComment(View view) {
+        if (deleteRecordingImg.getTag().equals("stop")) {
+            if(recordImg.getTag().equals("recording")) {
+                mediaRecorder.stop();
+                cdTimer.cancel();
+            }
+
+            if(recordImg.getTag().equals("play")) {
+                mediaPlayer.stop();
+                cdTimer.cancel();
+            }
+
+            recordImg.setImageResource(R.drawable.ic_baseline_play_arrow_24);
+            recordImg.setTag("play");
+            deleteRecordingImg.setImageResource(R.drawable.ic_baseline_delete_24);
+            deleteRecordingImg.setTag("delete");
+        } else {
+            asd.delete();
+            recordImg.setImageResource(R.drawable.ic_baseline_mic_24);
+            recordImg.setTag("record");
+            recordingContainer.setVisibility(View.GONE);
+            commentEdt.setVisibility(View.VISIBLE);
+        }
+    }
+
+    private void postComment(View view) {
+        if(recordImg.getTag().equals("recording")) {
+            mediaRecorder.stop();
+            cdTimer.cancel();
+
+            recordImg.setImageResource(R.drawable.ic_baseline_mic_24);
+            recordImg.setTag("record");
+            recordingContainer.setVisibility(View.GONE);
+            commentEdt.setVisibility(View.VISIBLE);
+        }
+
+        if(recordImg.getTag().equals("play")) {
+            mediaPlayer.stop();
+            cdTimer.cancel();
+
+            recordImg.setImageResource(R.drawable.ic_baseline_mic_24);
+            recordImg.setTag("record");
+            recordingContainer.setVisibility(View.GONE);
+            commentEdt.setVisibility(View.VISIBLE);
+        }
+
+        if(commentEdt.length() > 0)
+            commentEdt.setText("");
+    }
+
+    @RequiresApi(api = Build.VERSION_CODES.O)
+    private void recordVn(View view) {
+        if (recordImg.getTag().equals("recording")) {
+            mediaRecorder.stop();
+            recordImg.setImageResource(R.drawable.ic_baseline_mic_24);
+            recordImg.setTag("record");
+            recordingContainer.setVisibility(View.GONE);
+            commentEdt.setVisibility(View.VISIBLE);
+        } else if (recordImg.getTag().equals("record")) {
+            if(Build.VERSION.SDK_INT > Build.VERSION_CODES.O)
+                asd = new File(getExternalFilesDir("Dabz"),File.separator+"Comments/.Recordings/"+UUID.randomUUID().toString()+".3gp");
+            else
+                asd = new File(Environment.getExternalStorageDirectory(), File.separator+"Dabz/Comments/.Recordings/"+UUID.randomUUID().toString()+".3gp");
+            try {
+                asd.createNewFile();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            mediaRecorder = new MediaRecorder();
+            mediaRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
+            mediaRecorder.setOutputFormat(MediaRecorder.OutputFormat.THREE_GPP);
+            mediaRecorder.setOutputFile(asd);
+            mediaRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AMR_WB);
+            try {
+                recordingProgress.setMax(180);
+                mediaRecorder.prepare();
+                mediaRecorder.start();
+                showAnimation(recordingProgress);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+            recordImg.setImageResource(R.drawable.ic_baseline_mic_red__24);
+            recordImg.setTag("recording");
+            deleteRecordingImg.setImageResource(R.drawable.ic_baseline_stop_24);
+            deleteRecordingImg.setTag("stop");
+            recordingContainer.setVisibility(View.VISIBLE);
+            commentEdt.setVisibility(View.GONE);
+        } else {
+            mediaPlayer = new MediaPlayer();
+            mediaPlayer.reset();
+            try {
+                mediaPlayer.setDataSource(String.valueOf(asd));
+                mediaPlayer.prepare();
+                mediaPlayer.start();
+                showPlayAnimation(recordingProgress);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            deleteRecordingImg.setImageResource(R.drawable.ic_baseline_stop_24);
+            deleteRecordingImg.setTag("stop");
+        }
+    }
+
     private void showPlayAnimation(ProgressBar rProgress) {
         rProgress.setMax(mediaPlayer.getDuration()/1000);
         cdTimer = new CountDownTimer((mediaPlayer.getDuration()), 1000) {
@@ -282,14 +328,14 @@ public class CommentAct extends BaseActivity implements LoaderManager.LoaderCall
         cdTimer.start();
     }
 
-    private void obstartAnime(ProgressBar recordingProgress) {
+/*    private void obstartAnime(ProgressBar recordingProgress) {
         asdd = Observable.interval(100, TimeUnit.MILLISECONDS)
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(aLong -> {
                     int amp = mediaRecorder.getMaxAmplitude();
                     recordingProgress.setProgress((int) Math.sqrt(amp));
                 });
-    }
+    }*/
 
     private void showAnimation(ProgressBar rProgress) {
         cdTimer = new CountDownTimer(180000,1000) {
@@ -325,13 +371,13 @@ public class CommentAct extends BaseActivity implements LoaderManager.LoaderCall
 
     }
 
-    private void getAuthorInfo() {
+/*    private void getAuthorInfo() {
 
-    }
+    }*/
 
-    private void getComments() {
+/*    private void getComments() {
 
-    }
+    }*/
 
     private void initUI() {
         if (result) {

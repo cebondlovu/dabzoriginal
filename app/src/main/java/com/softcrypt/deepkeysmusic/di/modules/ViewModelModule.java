@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel;
 import androidx.lifecycle.ViewModelProvider;
 
 import com.softcrypt.deepkeysmusic.di.ViewModelKey;
+import com.softcrypt.deepkeysmusic.viewModels.CommentViewModel;
 import com.softcrypt.deepkeysmusic.viewModels.ImagePostViewModel;
 import com.softcrypt.deepkeysmusic.viewModels.LoginViewModel;
 import com.softcrypt.deepkeysmusic.viewModels.MainViewModel;
@@ -42,6 +43,11 @@ public abstract class ViewModelModule {
     @IntoMap
     @ViewModelKey(ImagePostViewModel.class)
     abstract ViewModel bindImagePostViewModel(ImagePostViewModel imagePostViewModel);
+
+    @Binds
+    @IntoMap
+    @ViewModelKey(CommentViewModel.class)
+    abstract ViewModel bindCommentViewModel(CommentViewModel commentViewModel);
 
     @Binds
     abstract ViewModelProvider.Factory bindFactory(ViewModelFactory factory);

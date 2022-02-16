@@ -1,6 +1,7 @@
 package com.softcrypt.deepkeysmusic.adapter;
 
 import android.content.Context;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
@@ -9,16 +10,22 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
+import androidx.lifecycle.LifecycleOwner;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.hendraanggrian.appcompat.widget.SocialTextView;
 import com.softcrypt.deepkeysmusic.R;
+import com.softcrypt.deepkeysmusic.common.DisplayableError;
 import com.softcrypt.deepkeysmusic.common.NavigationTypes;
 import com.softcrypt.deepkeysmusic.model.Comment;
 import com.softcrypt.deepkeysmusic.model.Post;
+import com.softcrypt.deepkeysmusic.viewModels.CommentViewModel;
+import com.softcrypt.deepkeysmusic.viewModels.HomeViewModel;
 
 import java.text.DecimalFormat;
+import java.util.ArrayList;
 import java.util.List;
 
 import de.hdodenhof.circleimageview.CircleImageView;
@@ -27,20 +34,29 @@ public class CommentAdapter extends RecyclerView.Adapter<CommentAdapter.ViewHold
 
     private final List<Comment> commentList;
     private final Context context;
+    private final CommentViewModel commentViewModel;
+    private LifecycleOwner owner;
+    private DisplayableError displayableError;
+    private FirebaseUser firebaseUser;
     private static final int SECOND_MILLIS = 1000;
     private static final int MINUTE_MILLIS = 60 * SECOND_MILLIS;
     private static final int HOUR_MILLIS = 60 * MINUTE_MILLIS;
     private static final int DAY_MILLIS = 24 * HOUR_MILLIS;
 
-    public CommentAdapter(List<Comment> commentList, Context context) {
-        this.commentList = commentList;
+    public CommentAdapter(CommentViewModel commentViewModel, LifecycleOwner owner, Context context) {
+        this.commentList = new ArrayList<>();
         this.context = context;
+        this.commentViewModel = commentViewModel;
+        this.owner = owner;
+        this.displayableError = DisplayableError.getInstance(context);
+        this.firebaseUser = FirebaseAuth.getInstance().getCurrentUser();
     }
 
     @NonNull
     @Override
     public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        return null;
+        View v = LayoutInflater.from(context).inflate(R.layout.item_comment, parent, false);
+        return new ViewHolder(v);
     }
 
     @Override
@@ -126,6 +142,10 @@ public class CommentAdapter extends RecyclerView.Adapter<CommentAdapter.ViewHold
         } else if (diff < 48 * HOUR_MILLIS) {
             return "yesterday";
         } else {
+            if((diff / DAY_MILLIS) > 28 && (diff / DAY_MILLIS) < 60)
+                return "a month ago";
+            if((diff / DAY_MILLIS) > 60)
+                return "a while ago";
             return diff / DAY_MILLIS + " days ago";
         }
     }

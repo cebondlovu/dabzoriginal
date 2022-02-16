@@ -60,7 +60,7 @@ public class HomeFrag extends Fragment {
     private int mTotalItemCount = 0;
     private int mLastVisibleItemPosition;
     private boolean mIsLoading = false;
-    private int mPostsPerPage = 2, count = 0;
+    private int mPostsPerPage = 4, count = 0;
 
     private HomeViewModel homeViewModel;
     private DisplayableError displayableError;

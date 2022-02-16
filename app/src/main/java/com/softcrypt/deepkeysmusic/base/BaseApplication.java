@@ -67,10 +67,10 @@ public class BaseApplication extends Application {
     private void createAppFolder() {
         if(Build.VERSION.SDK_INT > Build.VERSION_CODES.O) {
             fileList = new ArrayList<>();
-            fileList.add(new File(getApplicationContext().getExternalFilesDir("Data"), File.separator + "Dabz/"));
-            fileList.add(new File(getApplicationContext().getExternalFilesDir("Data"), File.separator + "Dabz/Comments/Recordings"));
-            fileList.add(new File(getApplicationContext().getExternalFilesDir("Data"), File.separator + "Dabz/Messages/Media"));
-            fileList.add(new File(getApplicationContext().getExternalFilesDir("Data"), File.separator + "Dabz/Database"));
+            //fileList.add(new File(getApplicationContext().getExternalFilesDir("Dabz"), File.separator + "Dabz/"));
+            fileList.add(new File(getApplicationContext().getExternalFilesDir("Dabz"), File.separator + "Comments/.Recordings"));
+            fileList.add(new File(getApplicationContext().getExternalFilesDir("Dabz"), File.separator + "Messages/Media"));
+            fileList.add(new File(getApplicationContext().getExternalFilesDir("Dabz"), File.separator + ".Database"));
 
             for (File dFile : fileList) {
                 file = dFile;

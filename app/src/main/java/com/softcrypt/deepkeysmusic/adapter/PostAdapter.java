@@ -9,6 +9,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.lifecycle.LifecycleOwner;
@@ -90,14 +91,10 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.ViewHolder> {
             @Override
             public void onClick(View v) {
                 if (holder.flameImg.getTag().equals("like")) {
-                    holder.flameImg.setImageResource(R.drawable.ic_twotone_local_fire_department_24);
-                    holder.flameImg.setTag("liked");
-                    likePost(post, firebaseUser.getUid());
+                    likePost(post, firebaseUser.getUid(), holder.flameImg, holder.flameCount);
                     sendNotification(post.getPostId(), post.getAuthorId());
                 } else {
-                    holder.flameImg.setImageResource(R.drawable.ic_outline_local_fire_department_24);
-                    holder.flameImg.setTag("like");
-                    unlikePost(post, firebaseUser.getUid());
+                    unlikePost(post, firebaseUser.getUid(), holder.flameImg, holder.flameCount);
                 }
             }
         });
@@ -183,6 +180,10 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.ViewHolder> {
         } else if (diff < 48 * HOUR_MILLIS) {
             return "yesterday";
         } else {
+            if((diff / DAY_MILLIS) > 28 && (diff / DAY_MILLIS) < 60)
+                return "a month ago";
+            if((diff / DAY_MILLIS) > 60)
+                return "a while ago";
             return diff / DAY_MILLIS + " days ago";
         }
     }
@@ -211,29 +212,31 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.ViewHolder> {
         }
     }
 
-    private void likePost(Post post, String uid) {
+    private void likePost(Post post, String uid, ImageView imageView, TextView textView) {
         homeViewModel.likePost(post.getPostId(), uid);
+        isLiked(post, imageView, textView);
     }
 
-    private void unlikePost(Post post, String uid) {
+    private void unlikePost(Post post, String uid, ImageView imageView, TextView textView) {
+        imageView.setImageResource(R.drawable.ic_outline_local_fire_department_24);
+        imageView.setTag("like");
         homeViewModel.unlike(post.getPostId(), uid);
+        isLiked(post, imageView, textView);
     }
 
     @SuppressLint("SetTextI18n")
     private void isLiked(Post post, ImageView imageView, TextView text) {
         homeViewModel.isLikedResult(post.getPostId()).observe(owner, isLikedSnap -> {
             if(Objects.equals(isLikedSnap.getKey(), post.getPostId())) {
-                if (isLikedSnap.getChildrenCount() == 1)
-                    text.setText(prettyCount(isLikedSnap.getChildrenCount()) + " Flame");
-                else if (isLikedSnap.getChildrenCount() > 1)
-                    text.setText(prettyCount(isLikedSnap.getChildrenCount()) + " Flames");
+                if (isLikedSnap.child(DataPaths.$LIKED).getChildrenCount() == 1)
+                    text.setText(prettyCount(isLikedSnap.child(DataPaths.$LIKED).getChildrenCount()) + " Flame");
+                else if (isLikedSnap.child(DataPaths.$LIKED).getChildrenCount() > 1)
+                    text.setText(prettyCount(isLikedSnap.child(DataPaths.$LIKED).getChildrenCount()) + " Flames");
                 else {
                     text.setText("");
                 }
-            }
 
-            for (DataSnapshot snapshot : isLikedSnap.getChildren()) {
-                if (Objects.equals(isLikedSnap.getKey(), post.getPostId())) {
+                for (DataSnapshot snapshot : isLikedSnap.child(DataPaths.$LIKED).getChildren()) {
                     if (Objects.equals(snapshot.getKey(), firebaseUser.getUid())) {
                         imageView.setImageResource(R.drawable.ic_twotone_local_fire_department_24);
                         imageView.setTag("liked");

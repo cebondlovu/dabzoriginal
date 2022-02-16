@@ -167,7 +167,7 @@ public class MainActivity extends AppCompatActivity {
                 break;
             case R.id.nav_add:
                 selectorFragment = null;
-                startActivity(new Intent(this, VideoPostAct.class));
+                startActivity(new Intent(this, ImagePostAct.class));
                 break;
             case R.id.nav_message:
                 selectorFragment =new MessageFrag();

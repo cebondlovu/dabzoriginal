@@ -248,7 +248,7 @@ public class DabzRepository {
         Log.d("FB_Q1", String.valueOf(true));
         Query query = FirebaseDatabase.getInstance($BASE_URL).getReference()
                 .child(DataPaths.$POSTS_PATH)
-                .orderByChild(DataPaths.$POST_ID)
+                .orderByKey()
                 .limitToLast(limit);
 
         return RxFirebaseDatabase.observeSingleValueEvent(query);
@@ -258,9 +258,9 @@ public class DabzRepository {
         Log.d("FB_Q2", String.valueOf(true) + start);
         Query query = FirebaseDatabase.getInstance($BASE_URL).getReference()
                 .child(DataPaths.$POSTS_PATH)
-                .orderByChild(DataPaths.$POST_ID)
+                .orderByKey()
                 .startAt(start)
-                .limitToLast(limit);
+                .limitToFirst(limit);
 
 
         return RxFirebaseDatabase.observeSingleValueEvent(query);
@@ -269,22 +269,24 @@ public class DabzRepository {
 
     public Completable likePost(String postId, String userId) {
         DatabaseReference ref = FirebaseDatabase.getInstance($BASE_URL).getReference()
-                .child(DataPaths.$LIKES_PATH)
+                .child(DataPaths.$POSTS_PATH)
                 .child(postId)
+                .child(DataPaths.$LIKED)
                 .child(userId);
         return RxFirebaseDatabase.setValue(ref, true);
     }
 
     public void unlikePost(String postId, String userId){
         FirebaseDatabase.getInstance($BASE_URL).getReference()
-                .child(DataPaths.$LIKES_PATH)
+                .child(DataPaths.$POSTS_PATH)
                 .child(postId)
+                .child(DataPaths.$LIKED)
                 .child(userId).removeValue();
     }
 
     public Flowable<DataSnapshot> isLiked(String postId) {
         Query query = FirebaseDatabase.getInstance($BASE_URL).getReference()
-                .child(DataPaths.$LIKES_PATH)
+                .child(DataPaths.$POSTS_PATH)
                 .child(postId);
         return RxFirebaseDatabase.observeValueEvent(query, BackpressureStrategy.LATEST);
     }
@@ -298,17 +300,39 @@ public class DabzRepository {
         return RxFirebaseDatabase.setValue(reference, map);
     }
 
-    public Completable createComment(String comment, String userId, String postId) {
+    public Completable createComment(String comment,String type, String userId, String postId) {
         HashMap<String,Object> map = new HashMap<>();
 
         DatabaseReference ref = FirebaseDatabase.getInstance($BASE_URL).getReference()
-                .child(DataPaths.$COMMENTS_PATH)
-                .child(postId);
+                .child(DataPaths.$POSTS_PATH)
+                .child(postId)
+                .child(DataPaths.$Comments);
 
         String id = ref.push().getKey();
 
         map.put("id", id);
         map.put("comment", comment);
+        map.put("type", type);
+        map.put("publisher", userId);
+
+        return RxFirebaseDatabase.setValue(ref.child(id), map);
+    }
+
+    public Completable createReply(String comment, String type, String userId, String postId, String commentId) {
+        HashMap<String , Object> map = new HashMap<>();
+
+        DatabaseReference ref = FirebaseDatabase.getInstance($BASE_URL).getReference()
+                .child(DataPaths.$POSTS_PATH)
+                .child(postId)
+                .child(DataPaths.$Comments)
+                .child(commentId)
+                .child(DataPaths.$Replies);
+
+        String id = ref.push().getKey();
+
+        map.put("id", id);
+        map.put("comment", comment);
+        map.put("type", type);
         map.put("publisher", userId);
 
         return RxFirebaseDatabase.setValue(ref.child(id), map);
@@ -316,15 +340,27 @@ public class DabzRepository {
 
     public Flowable<DataSnapshot> getComments(String postId) {
         Query query = FirebaseDatabase.getInstance($BASE_URL).getReference()
-                .child(DataPaths.$COMMENTS_PATH)
-                .child(postId);
+                .child(DataPaths.$POSTS_PATH)
+                .child(postId)
+                .child(DataPaths.$Comments);
+        return RxFirebaseDatabase.observeValueEvent(query, BackpressureStrategy.LATEST);
+    }
+
+    public Flowable<DataSnapshot> getReplies(String postId, String commentId) {
+        Query query = FirebaseDatabase.getInstance($BASE_URL).getReference()
+                .child(DataPaths.$POSTS_PATH)
+                .child(postId)
+                .child(DataPaths.$Comments)
+                .child(commentId)
+                .child(DataPaths.$Replies);
         return RxFirebaseDatabase.observeValueEvent(query, BackpressureStrategy.LATEST);
     }
 
     public Completable deleteComment (String postId, String id) {
         Task<Void> task = FirebaseDatabase.getInstance($BASE_URL).getReference()
-                .child(DataPaths.$COMMENTS_PATH)
+                .child(DataPaths.$POSTS_PATH)
                 .child(postId)
+                .child(DataPaths.$Comments)
                 .child(id).removeValue();
 
         return Completable.create(new CompletableOnSubscribe() {

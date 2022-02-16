@@ -20,12 +20,51 @@ android {
         multiDexEnabled = true
     }
 
+    def BASE_URL = "BASE_URL"
+
+    flavorDimensions "debug","release"
+
+    productFlavors {
+        development {
+            dimension "debug"
+            applicationIdSuffix ".development"
+            buildConfigField "String", BASE_URL, '"https://developmentserver.com"'
+        }
+
+        production {
+            dimension "debug"
+            applicationIdSuffix ".production"
+            buildConfigField "String", BASE_URL, '"https://productionserver.com"'
+        }
+
+        features {
+            dimension "debug"
+            applicationIdSuffix ".features"
+            buildConfigField "String", BASE_URL, '"https://testingserver.com"'
+        }
+
+        qa {
+            dimension "release"
+        }
+
+        us {
+            dimension "release"
+        }
+    }
+
     buildTypes {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
+
+        dev {
+            debuggable true
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
     }
+
     buildFeatures {
         viewBinding true
     }

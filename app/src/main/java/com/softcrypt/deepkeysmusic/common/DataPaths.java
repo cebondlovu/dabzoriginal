@@ -7,7 +7,7 @@ public class DataPaths {
     public static final String $POSTS_PATH = "Posts";
     public static final String $MEDIA_PATH = "MediaUrls";
     public static final String $LIKES_PATH = "Likes";
-    public static final String $COMMENTS_PATH = "Comments";
+    //public static final String $COMMENTS_PATH = "Comments";
     public static final String $NOTIFICATIONS_PATH = "Notifications";
     public static final String $IMAGE_PATH = "/ProfileImages/";
     public static final String $IMAGE_POST_PATH = "/ImagePosts/";
@@ -28,6 +28,9 @@ public class DataPaths {
     public static final String $DATE_TIME = "dateTime";
     public static final String $BASE_NAME = "dabz.realm";
     public static final String $POST_ID = "postId";
+    public static final String $LIKED = "liked";
+    public static final String $Comments = "comments";
+    public static final String $Replies = "replies";
 
 
 
