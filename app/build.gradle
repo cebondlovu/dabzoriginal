@@ -4,6 +4,10 @@ plugins {
     id 'realm-android'
 }
 
+def keystorePropertiesFile = rootProject.file("keystore.properties")
+def keystoreProperties = new Properties()
+keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
+
 android {
     compileSdk 30
     buildToolsVersion "30.0.2"
@@ -20,6 +24,15 @@ android {
         multiDexEnabled = true
     }
 
+    signingConfigs {
+        debug {
+            keyAlias keystoreProperties['debugAliasKey']
+            keyPassword keystoreProperties['debugKeyPassword']
+            storeFile file(rootDir.getCanonicalPath() + '/' + keystoreProperties['debugKeyStore'])
+            storePassword keystoreProperties['debugStorePassword']
+        }
+    }
+
     def BASE_URL = "BASE_URL"
 
     flavorDimensions "debug","release"
@@ -27,19 +40,19 @@ android {
     productFlavors {
         development {
             dimension "debug"
-            applicationIdSuffix ".development"
+            //applicationIdSuffix ".development"
             buildConfigField "String", BASE_URL, '"https://developmentserver.com"'
         }
 
         production {
             dimension "debug"
-            applicationIdSuffix ".production"
+            //applicationIdSuffix ".production"
             buildConfigField "String", BASE_URL, '"https://productionserver.com"'
         }
 
         features {
             dimension "debug"
-            applicationIdSuffix ".features"
+            //applicationIdSuffix ".features"
             buildConfigField "String", BASE_URL, '"https://testingserver.com"'
         }
 
@@ -56,12 +69,14 @@ android {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            //signingConfig signingConfigs.debug
         }
 
         dev {
             debuggable true
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            //signingConfig signingConfigs.debug
         }
     }
 
