@@ -116,7 +116,7 @@ android {
             variant ->
                 variant.outputs.each {
                     output ->
-                        def name = "${defaultConfig.applicationId}-${variant.getFlavorName()}-${variant.versionName}.${variant.versionCode}.apk"
+                        def name = "${defaultConfig.applicationId}-${variant.getFlavorName()}-${variant.versionName}.${variant.versionCode}-${variant.buildType.name}.apk"
                         output.outputFileName=name
                 }
         }
