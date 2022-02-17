@@ -86,6 +86,7 @@ android {
 
         qa {
             dimension "debug"
+            versionNameSuffix "-"+ android.defaultConfig.versionName + "-"
         }
 
         us {
