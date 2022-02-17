@@ -8,6 +8,15 @@ def keystorePropertiesFile = rootProject.file("keystore.properties")
 def keystoreProperties = new Properties()
 keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
 
+
+def Properties versionProps = new Properties()
+def versionPropsFile = file('version.properties')
+if(versionPropsFile.exists())
+    versionProps.load(new FileInputStream(versionPropsFile))
+def code = (versionProps['VERSION_CODE'] ?: "0").toInteger() + 1
+versionProps['VERSION_CODE'] = code.toString()
+versionProps.store(versionPropsFile.newWriter(), null)
+
 ext.versionMajor = 1
 ext.versionMinor = 2
 
@@ -29,7 +38,7 @@ android {
         applicationId "com.softcrypt.deepkeysmusic"
         minSdk 21
         targetSdk 30
-        versionCode computeVersionCode()
+        versionCode code
         versionName computeVersionName()
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
@@ -107,7 +116,7 @@ android {
             variant ->
                 variant.outputs.each {
                     output ->
-                        def name = "${defaultConfig.applicationId}.${variant.getFlavorName()}.${variant.versionName}.${variant.versionCode}.apk"
+                        def name = "${defaultConfig.applicationId}-${variant.getFlavorName()}-${variant.versionName}.${variant.versionCode}.apk"
                         output.outputFileName=name
                 }
         }
