@@ -67,25 +67,21 @@ android {
     productFlavors {
         development {
             dimension "release"
-            versionName computeVersionName()
             buildConfigField "String", BASE_URL, '"https://developmentserver.com"'
         }
 
         production {
             dimension "release"
-            versionName computeVersionName()
             buildConfigField "String", BASE_URL, '"https://productionserver.com"'
         }
 
         features {
             dimension "release"
-            versionName computeVersionName()
             buildConfigField "String", BASE_URL, '"https://testingserver.com"'
         }
 
         qa {
             dimension "debug"
-            versionNameSuffix "-"+ android.defaultConfig.versionName + "-"
         }
 
         us {
@@ -105,6 +101,15 @@ android {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
             signingConfig signingConfigs.debug
+        }
+
+        applicationVariants.all {
+            variant ->
+                variant.outputs.each {
+                    output ->
+                        def name = ".${defaultConfig.applicationId}${variant.versionName}.${variant.versionCode}.apk"
+                        output.outputFileName=name
+                }
         }
     }
 
