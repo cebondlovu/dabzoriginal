@@ -31,6 +31,20 @@ android {
             storeFile file(rootDir.getCanonicalPath() + '/' + keystoreProperties['debugKeyStore'])
             storePassword keystoreProperties['debugStorePassword']
         }
+
+        release {
+            keyAlias keystoreProperties['releaseAliasKey']
+            keyPassword keystoreProperties['releaseKeyPassword']
+            storeFile file(rootDir.getCanonicalPath() + '/' + keystoreProperties['releaseKeyStore'])
+            storePassword keystoreProperties['releaseStorePassword']
+        }
+
+        production {
+            keyAlias keystoreProperties['devAliasKey']
+            keyPassword keystoreProperties['devKeyPassword']
+            storeFile file(rootDir.getCanonicalPath() + '/' + keystoreProperties['devKeyStore'])
+            storePassword keystoreProperties['devStorePassword']
+        }
     }
 
     def BASE_URL = "BASE_URL"
@@ -39,29 +53,33 @@ android {
 
     productFlavors {
         development {
-            dimension "debug"
+            dimension "release"
             //applicationIdSuffix ".development"
             buildConfigField "String", BASE_URL, '"https://developmentserver.com"'
         }
 
         production {
-            dimension "debug"
+            dimension "release"
             //applicationIdSuffix ".production"
             buildConfigField "String", BASE_URL, '"https://productionserver.com"'
         }
 
         features {
-            dimension "debug"
+            dimension "release"
             //applicationIdSuffix ".features"
             buildConfigField "String", BASE_URL, '"https://testingserver.com"'
         }
 
         qa {
-            dimension "release"
+            dimension "debug"
+            versionCode 10000  + android.defaultConfig.versionCode
+            versionNameSuffix getVersion() + "-qa"
         }
 
         us {
-            dimension "release"
+            dimension "debug"
+            versionCode 10000  + android.defaultConfig.versionCode
+            versionNameSuffix getVersion() + "-us"
         }
     }
 
@@ -72,7 +90,7 @@ android {
             //signingConfig signingConfigs.debug
         }
 
-        dev {
+        debug {
             debuggable true
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
