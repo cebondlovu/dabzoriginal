@@ -73,6 +73,7 @@ android {
 
         production {
             dimension "release"
+            versionNameSuffix ".production"
             versionName computeVersionName()
             buildConfigField "String", BASE_URL, '"https://productionserver.com"'
         }
