@@ -8,6 +8,19 @@ def keystorePropertiesFile = rootProject.file("keystore.properties")
 def keystoreProperties = new Properties()
 keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
 
+ext.versionMajor = 1
+ext.versionMinor = 2
+
+def computeVersionName() {
+    return String.format('%d.%d', versionMajor, versionMinor)
+}
+
+def computeVersionCode() {
+    return (versionMajor * 100000)
+    + (versionMinor * 10000)
+    + Integer.valueOf(System.env.BUILD_NUMBER ?: 0)
+}
+
 android {
     compileSdk 30
     buildToolsVersion "30.0.2"
@@ -16,8 +29,8 @@ android {
         applicationId "com.softcrypt.deepkeysmusic"
         minSdk 21
         targetSdk 30
-        versionCode 1
-        versionName "1.0"
+        versionCode computeVersionCode()
+        versionName computeVersionName()
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables.useSupportLibrary = true
