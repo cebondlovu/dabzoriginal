@@ -73,13 +73,13 @@ android {
         qa {
             dimension "debug"
             versionCode 10000  + android.defaultConfig.versionCode
-            versionNameSuffix getVersion() + "-qa"
+            versionNameSuffix versionName + "-qa"
         }
 
         us {
             dimension "debug"
             versionCode 10000  + android.defaultConfig.versionCode
-            versionNameSuffix getVersion() + "-us"
+            versionNameSuffix versionName + "-us"
         }
     }
 
