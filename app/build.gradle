@@ -67,32 +67,28 @@ android {
     productFlavors {
         development {
             dimension "release"
-            //applicationIdSuffix ".development"
+            versionName computeVersionName()
             buildConfigField "String", BASE_URL, '"https://developmentserver.com"'
         }
 
         production {
             dimension "release"
-            //applicationIdSuffix ".production"
+            versionName computeVersionName()
             buildConfigField "String", BASE_URL, '"https://productionserver.com"'
         }
 
         features {
             dimension "release"
-            //applicationIdSuffix ".features"
+            versionName computeVersionName()
             buildConfigField "String", BASE_URL, '"https://testingserver.com"'
         }
 
         qa {
             dimension "debug"
-            versionCode 10000  + android.defaultConfig.versionCode
-            versionNameSuffix "-qa-" + android.defaultConfig.versionName
         }
 
         us {
             dimension "debug"
-            versionCode 10000  + android.defaultConfig.versionCode
-            versionNameSuffix "-us-" +  android.defaultConfig.versionName
         }
     }
 
