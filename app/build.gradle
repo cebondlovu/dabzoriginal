@@ -17,18 +17,15 @@ def code = (versionProps['VERSION_CODE'] ?: "0").toInteger() + 1
 versionProps['VERSION_CODE'] = code.toString()
 versionProps.store(versionPropsFile.newWriter(), null)
 
-ext.versionMajor = 1
-ext.versionMinor = 2
+def vName = (versionProps['VERSION_NAME'] ?: "0").toInteger() + 1
+versionProps['VERSION_NAME'] = vName.toString()
+versionProps.store(versionPropsFile.newWriter(), null)
 
-def computeVersionName() {
-    return String.format('%d.%d', versionMajor, versionMinor)
-}
+def tryNumber = (versionProps['TRY_NUMBER'] ?: "0").toInteger() + 1
+if(vName > (tryNumber * 10))
+    versionProps['TRY_NUMBER'] = tryNumber.toString()
+versionProps.store(versionPropsFile.newWriter(), null)
 
-def computeVersionCode() {
-    return (versionMajor * 100000)
-    + (versionMinor * 10000)
-    + Integer.valueOf(System.env.BUILD_NUMBER ?: 0)
-}
 
 android {
     compileSdk 30
@@ -39,7 +36,7 @@ android {
         minSdk 21
         targetSdk 30
         versionCode code
-        versionName computeVersionName()
+        versionName "$tryNumber.$vName"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables.useSupportLibrary = true
