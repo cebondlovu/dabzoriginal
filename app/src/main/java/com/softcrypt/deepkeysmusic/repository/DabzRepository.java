@@ -248,19 +248,19 @@ public class DabzRepository {
         Log.d("FB_Q1", String.valueOf(true));
         Query query = FirebaseDatabase.getInstance($BASE_URL).getReference()
                 .child(DataPaths.$POSTS_PATH)
-                .orderByKey()
+                .orderByChild("dateTime")
                 .limitToLast(limit);
 
         return RxFirebaseDatabase.observeSingleValueEvent(query);
     }
 
-    public Maybe<DataSnapshot> getMorePosts(int limit, String start) {
-        Log.d("FB_Q2", String.valueOf(true) + start);
+    public Maybe<DataSnapshot> getMorePosts(int page, int pageSize) {
+        int offset = page * pageSize;
+        Log.d("FB_Q2", String.valueOf(true) + offset);
         Query query = FirebaseDatabase.getInstance($BASE_URL).getReference()
                 .child(DataPaths.$POSTS_PATH)
-                .orderByKey()
-                .startAt(start)
-                .limitToFirst(limit);
+                .orderByChild("dateTime")
+                .limitToLast(offset);
 
 
         return RxFirebaseDatabase.observeSingleValueEvent(query);

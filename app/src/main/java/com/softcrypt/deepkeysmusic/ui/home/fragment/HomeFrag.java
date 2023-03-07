@@ -21,22 +21,17 @@ import android.widget.HorizontalScrollView;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-import com.google.firebase.database.DataSnapshot;
 import com.softcrypt.deepkeysmusic.R;
 import com.softcrypt.deepkeysmusic.adapter.PostAdapter;
 import com.softcrypt.deepkeysmusic.adapter.StoryAdapter;
 import com.softcrypt.deepkeysmusic.base.BaseApplication;
 import com.softcrypt.deepkeysmusic.common.DisplayableError;
 import com.softcrypt.deepkeysmusic.common.NavigationTypes;
-import com.softcrypt.deepkeysmusic.model.Post;
 import com.softcrypt.deepkeysmusic.ui.notification.NotificationsAct;
 import com.softcrypt.deepkeysmusic.ui.post.ImagePostAct;
 import com.softcrypt.deepkeysmusic.viewModels.HomeViewModel;
 
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
-import java.util.List;
 
 import de.hdodenhof.circleimageview.CircleImageView;
 import io.realm.Realm;
@@ -58,9 +53,10 @@ public class HomeFrag extends Fragment {
     private LinearLayoutManager mLayoutManager;
 
     private int mTotalItemCount = 0;
-    private int mLastVisibleItemPosition;
-    private boolean mIsLoading = false;
-    private int mPostsPerPage = 4, count = 0;
+    private int mFirstVisibleItemPosition;
+    private int mVisibleItemCount;
+    private boolean mIsLoading = false, mIsLastPage = false;
+    private int mPostsPerPage = 1, count = 0, mPageSize = 10;
 
     private HomeViewModel homeViewModel;
     private DisplayableError displayableError;
@@ -75,6 +71,7 @@ public class HomeFrag extends Fragment {
         ((BaseApplication) requireActivity().getApplication()).getAppComponent().injectHomeFrag(this);
 
         homeViewModel = new HomeViewModel((BaseApplication) requireActivity().getApplication(), Realm.getDefaultInstance());
+
         displayableError = DisplayableError.getInstance(requireActivity());
 
         handler = new Handler();
@@ -115,13 +112,16 @@ public class HomeFrag extends Fragment {
         postAdapter = new PostAdapter(homeViewModel, requireActivity(), getContext());
         recyclerPosts.setAdapter(postAdapter);
 
-        getPosts(null);
+        homeViewModel.getPostLiveData().observe(getViewLifecycleOwner(), posts -> {
+            postAdapter.addAll(posts);
+            mIsLoading = false;
+        });
 
         swipeRefreshLayout.setRefreshing(true);
         swipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
             public void onRefresh() {
-                getPosts(null);
+                getMorePost();
             }
 
         });
@@ -150,16 +150,23 @@ public class HomeFrag extends Fragment {
             @Override
             public void onScrolled(@NonNull RecyclerView recyclerView, int dx, int dy) {
                 super.onScrolled(recyclerView, dx, dy);
-                
+
+                mVisibleItemCount = mLayoutManager.getChildCount();
                 mTotalItemCount = mLayoutManager.getItemCount();
-                mLastVisibleItemPosition = mLayoutManager.findLastVisibleItemPosition();
+                mFirstVisibleItemPosition = mLayoutManager.findFirstVisibleItemPosition();
                 displayableError.createToastMessage(""+(mTotalItemCount), 1);
-                if(!mIsLoading && mTotalItemCount <= (mLastVisibleItemPosition + mPostsPerPage)) {
-                    getPosts(postAdapter.getLastItemId());
-                    mIsLoading = true;
+
+                if(!mIsLoading && !mIsLastPage) {
+                    if ((mVisibleItemCount + mFirstVisibleItemPosition) >= mTotalItemCount
+                        && mFirstVisibleItemPosition >= 0 && mTotalItemCount >= mPageSize) {
+                        mPostsPerPage++;
+                        getMorePost();
+                    }
                 }
             }
         });
+
+        getMorePost();
 
         return v;
     }
@@ -174,42 +181,9 @@ public class HomeFrag extends Fragment {
         };
         return runnable;
     }
-
-    private void getPosts(String mStartAfter) {
-        if (mStartAfter != null)
-            homeViewModel.getPostResult(mPostsPerPage, mStartAfter).observe(requireActivity(), postSnap -> {
-                Log.d("FB_PS2", String.valueOf(postSnap));
-                List<Post> postList = new ArrayList<>();
-                for (DataSnapshot snapshot : postSnap.getChildren()) {
-                    Post post = snapshot.getValue(Post.class);
-                    assert post != null;
-                    if(!loadedPostList.containsValue(post.getPostId())) {
-                        postList.add(post);
-                        loadedPostList.put(post.getPostId(), post.getPostId());
-                    }
-                }
-                postAdapter.addAll(postList);
-                mIsLoading = false;
-            });
-        else
-            homeViewModel.getPostResult(mPostsPerPage).observe(requireActivity(), postSnap -> {
-                Log.d("FB_PS1", String.valueOf(postSnap));
-                List<Post> postList = new ArrayList<>();
-                for (DataSnapshot snapshot : postSnap.getChildren()) {
-                    Post post = snapshot.getValue(Post.class);
-                    if(loadedPostList.isEmpty()) {
-                        assert post != null;
-                        loadedPostList.put(post.getPostId(), post.getPostId());
-                        postList.add(post);
-                    } else if(!loadedPostList.containsValue(post.getPostId())) {
-                        loadedPostList.put(post.getPostId(), post.getPostId());
-                        postList.add(post);
-                    }
-                }
-                postAdapter.addAll(postList);
-                mIsLoading = false;
-            });
-
+    private void getMorePost() {
+        homeViewModel.getMorePosts(mPostsPerPage, mPageSize);
+        //mIsLoading = true;
         swipeRefreshLayout.setRefreshing(false);
     }
 

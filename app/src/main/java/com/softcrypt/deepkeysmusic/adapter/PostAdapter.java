@@ -41,14 +41,16 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 
 import de.hdodenhof.circleimageview.CircleImageView;
 
 public class PostAdapter extends RecyclerView.Adapter<PostAdapter.ViewHolder> {
 
-    private final List<Post> postList;
+    private List<Post> postList;
     private final Context context;
     private final HomeViewModel homeViewModel;
     private LifecycleOwner owner;
@@ -58,6 +60,7 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.ViewHolder> {
     private static final int HOUR_MILLIS = 60 * MINUTE_MILLIS;
     private static final int DAY_MILLIS = 24 * HOUR_MILLIS;
     private FirebaseUser firebaseUser;
+
 
     public PostAdapter(HomeViewModel homeViewModel, LifecycleOwner owner, Context context) {
         this.homeViewModel = homeViewModel;
@@ -78,36 +81,40 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.ViewHolder> {
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, final int position) {
         Post post = postList.get(holder.getBindingAdapterPosition());
-        getProfileInfo(holder.name, holder.username, holder.profileImg, holder.verified,post);
-        isLiked(post, holder.flameImg, holder.flameCount);
-        if(post.getMediaType().equals(Common.IMAGE))
-            Picasso.get().load(post.getMedia()).into(holder.postMedia);
-        holder.dateTime.setText(getTimeAgo(post.getDateTime()));
-        theresComments(post, holder.commentCount, holder.commentImg);
-        holder.caption.setText(post.getCaption());
-        holder.flameImg.setTag("like");
 
-        holder.flameImg.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (holder.flameImg.getTag().equals("like")) {
-                    likePost(post, firebaseUser.getUid(), holder.flameImg, holder.flameCount);
-                    sendNotification(post.getPostId(), post.getAuthorId());
-                } else {
-                    unlikePost(post, firebaseUser.getUid(), holder.flameImg, holder.flameCount);
+        if (!homeViewModel.getLoadedPosts().contains(post)) {
+            getProfileInfo(holder.name, holder.username, holder.profileImg, holder.verified, post);
+            isLiked(post, holder.flameImg, holder.flameCount);
+            if (post.getMediaType().equals(Common.IMAGE))
+                Picasso.get().load(post.getMedia()).into(holder.postMedia);
+            holder.dateTime.setText(getTimeAgo(post.getDateTime()));
+            theresComments(post, holder.commentCount, holder.commentImg);
+            holder.caption.setText(post.getCaption());
+            holder.flameImg.setTag("like");
+
+            holder.flameImg.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    if (holder.flameImg.getTag().equals("like")) {
+                        likePost(post, firebaseUser.getUid(), holder.flameImg, holder.flameCount);
+                        sendNotification(post.getPostId(), post.getAuthorId());
+                    } else {
+                        unlikePost(post, firebaseUser.getUid(), holder.flameImg, holder.flameCount);
+                    }
                 }
-            }
-        });
+            });
 
-        holder.commentImg.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent intent = new Intent(context, CommentAct.class);
-                intent.putExtra(ParseData.$POST_ID, post.getPostId());
-                intent.putExtra(ParseData.$AUTHOR_ID, post.getAuthorId());
-                context.startActivity(intent);
-            }
-        });
+            holder.commentImg.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    Intent intent = new Intent(context, CommentAct.class);
+                    intent.putExtra(ParseData.$POST_ID, post.getPostId());
+                    intent.putExtra(ParseData.$AUTHOR_ID, post.getAuthorId());
+                    context.startActivity(intent);
+                }
+            });
+        }
+
     }
 
     @Override

@@ -27,6 +27,9 @@ import com.softcrypt.deepkeysmusic.repository.DabzRepository;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 import io.reactivex.android.schedulers.AndroidSchedulers;
@@ -44,11 +47,12 @@ public class HomeViewModel extends AndroidViewModel {
     private final DabzRepository dabzRepository;
     private final CompositeDisposable homeDisposable = new CompositeDisposable();
     private MutableLiveData<DataSnapshot> postResult = new MutableLiveData<>();
-    private MutableLiveData<DataSnapshot> morePostResult = new MutableLiveData<>();
+    private MutableLiveData<List<Post>> morePostResult = new MutableLiveData<>();
     private MutableLiveData<DataSnapshot> postMediaUrlResult = new MutableLiveData<>();
     private MutableLiveData<DataSnapshot> userInfoResult = new MutableLiveData<>();
     private MutableLiveData<DataSnapshot> likedResult = new MutableLiveData<>();
     private MutableLiveData<DataSnapshot> commentsResult = new MutableLiveData<>();
+    private Set<Post> loadedPosts = new HashSet<>();
 
     public HomeViewModel(@NonNull BaseApplication application, Realm realm) {
         super(application);
@@ -71,9 +75,12 @@ public class HomeViewModel extends AndroidViewModel {
         return postResult;
     }
 
-    public LiveData<DataSnapshot> getPostResult(int mLimit, String mStart) {
-        getPosts(mLimit, mStart);
+    public LiveData<List<Post>> getPostLiveData() {
         return morePostResult;
+    }
+
+    public Set<Post> getLoadedPosts() {
+        return loadedPosts;
     }
 
     public LiveData<DataSnapshot> isLikedResult(String postId) {
@@ -178,15 +185,24 @@ public class HomeViewModel extends AndroidViewModel {
                 }));
     }
 
-    private void getPosts(int mLimit, String mStart) {
-        homeDisposable.add(dabzRepository.getMorePosts(mLimit, mStart)
+    public void getMorePosts(int page, int pageSize) {
+        homeDisposable.add(dabzRepository.getMorePosts(page, pageSize)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new Consumer<DataSnapshot>() {
                     @Override
                     public void accept(DataSnapshot dataSnapshot) throws Exception {
-                        morePostResult.setValue(dataSnapshot);
-                        homeDisposable.clear();
+                        List<Post> posts = new ArrayList<>();
+                        for(DataSnapshot snapshot : dataSnapshot.getChildren()) {
+                            Post post = snapshot.getValue(Post.class);
+                            if(!loadedPosts.contains(post)) {
+                                posts.add(post);
+                                loadedPosts.add(post);
+                            }
+                        }
+
+                        morePostResult.setValue(posts);
+                         homeDisposable.clear();
                     }
                 }));
     }
