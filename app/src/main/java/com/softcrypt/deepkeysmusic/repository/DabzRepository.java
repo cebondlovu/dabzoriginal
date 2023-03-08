@@ -261,7 +261,8 @@ public class DabzRepository {
         Query query = FirebaseDatabase.getInstance($BASE_URL).getReference()
                 .child(DataPaths.$POSTS_PATH)
                 .orderByChild("dateTime")
-                .limitToFirst(offset);
+                .endAt(System.currentTimeMillis())
+                .limitToLast(offset);
 
 
         return RxFirebaseDatabase.observeSingleValueEvent(query);
