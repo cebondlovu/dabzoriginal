@@ -27,10 +27,13 @@ import com.softcrypt.deepkeysmusic.adapter.StoryAdapter;
 import com.softcrypt.deepkeysmusic.base.BaseApplication;
 import com.softcrypt.deepkeysmusic.common.DisplayableError;
 import com.softcrypt.deepkeysmusic.common.NavigationTypes;
+import com.softcrypt.deepkeysmusic.model.Post;
 import com.softcrypt.deepkeysmusic.ui.notification.NotificationsAct;
 import com.softcrypt.deepkeysmusic.ui.post.ImagePostAct;
 import com.softcrypt.deepkeysmusic.viewModels.HomeViewModel;
 
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 
 import de.hdodenhof.circleimageview.CircleImageView;
@@ -56,7 +59,7 @@ public class HomeFrag extends Fragment {
     private int mFirstVisibleItemPosition;
     private int mVisibleItemCount;
     private boolean mIsLoading = false, mIsLastPage = false;
-    private int mPostsPerPage = 1, count = 0, mPageSize = 10;
+    private int mPostsPerPage = 10, count = 0, mPageSize = 1;
 
     private HomeViewModel homeViewModel;
     private DisplayableError displayableError;
@@ -113,11 +116,18 @@ public class HomeFrag extends Fragment {
         recyclerPosts.setAdapter(postAdapter);
 
         homeViewModel.getPostLiveData().observe(getViewLifecycleOwner(), posts -> {
+            Collections.sort(posts, new Comparator<Post>() {
+                @Override
+                public int compare(Post post, Post t1) {
+                    return Long.compare(t1.getDateTime(), post.getDateTime());
+                }
+            });
+            postAdapter.clear();
             postAdapter.addAll(posts);
             mIsLoading = false;
+            swipeRefreshLayout.setRefreshing(false);
         });
 
-        swipeRefreshLayout.setRefreshing(true);
         swipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
             public void onRefresh() {
@@ -159,7 +169,7 @@ public class HomeFrag extends Fragment {
                 if(!mIsLoading && !mIsLastPage) {
                     if ((mVisibleItemCount + mFirstVisibleItemPosition) >= mTotalItemCount
                         && mFirstVisibleItemPosition >= 0 && mTotalItemCount >= mPageSize) {
-                        mPostsPerPage++;
+                        mPageSize++;
                         getMorePost();
                     }
                 }
@@ -181,10 +191,14 @@ public class HomeFrag extends Fragment {
         };
         return runnable;
     }
+
     private void getMorePost() {
-        homeViewModel.getMorePosts(mPostsPerPage, mPageSize);
-        //mIsLoading = true;
-        swipeRefreshLayout.setRefreshing(false);
+        swipeRefreshLayout.setRefreshing(true);
+        mIsLoading = true;
+        if(homeViewModel.getMorePosts(mPostsPerPage, mPageSize)) {
+            swipeRefreshLayout.setRefreshing(false);
+            mIsLoading = false;
+        }
     }
 
     private void navigateNotifications(View view) {

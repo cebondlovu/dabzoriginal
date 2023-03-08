@@ -12,6 +12,7 @@ import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.Query;
+import com.google.firebase.database.ServerValue;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
@@ -260,12 +261,11 @@ public class DabzRepository {
         Query query = FirebaseDatabase.getInstance($BASE_URL).getReference()
                 .child(DataPaths.$POSTS_PATH)
                 .orderByChild("dateTime")
-                .limitToLast(offset);
+                .limitToFirst(offset);
 
 
         return RxFirebaseDatabase.observeSingleValueEvent(query);
     }
-
 
     public Completable likePost(String postId, String userId) {
         DatabaseReference ref = FirebaseDatabase.getInstance($BASE_URL).getReference()

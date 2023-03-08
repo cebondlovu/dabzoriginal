@@ -31,6 +31,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.CompositeDisposable;
@@ -185,7 +186,7 @@ public class HomeViewModel extends AndroidViewModel {
                 }));
     }
 
-    public void getMorePosts(int page, int pageSize) {
+/*    public void getMorePosts(int page, int pageSize) {
         homeDisposable.add(dabzRepository.getMorePosts(page, pageSize)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
@@ -205,7 +206,34 @@ public class HomeViewModel extends AndroidViewModel {
                          homeDisposable.clear();
                     }
                 }));
+    }*/
+
+    public boolean getMorePosts(int page, int pageSize) {
+        AtomicBoolean isDone = new AtomicBoolean(false);
+        homeDisposable.add(dabzRepository.getMorePosts(page, pageSize)
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Consumer<DataSnapshot>() {
+                    @Override
+                    public void accept(DataSnapshot dataSnapshot) throws Exception {
+                        List<Post> posts = new ArrayList<>();
+                        for(DataSnapshot snapshot : dataSnapshot.getChildren()) {
+                            Post post = snapshot.getValue(Post.class);
+                            if(!loadedPosts.contains(post)) {
+                                posts.add(post);
+                                loadedPosts.add(post);
+                            }
+                        }
+
+                        morePostResult.setValue(posts);
+                        homeDisposable.clear();
+                        isDone.set(true);
+                    }
+                }));
+
+        return isDone.get();
     }
+
 
     private void reportError(String message) {
 
