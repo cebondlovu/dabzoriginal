@@ -209,6 +209,28 @@ public class DabzRepository {
         return RxFirebaseDatabase.setValue(ref, post);
     }
 
+    /**
+     * Post Code.
+     * Every method to do with posts
+     * Add Any New Code Here, Do not edit existing code.
+     */
+    public Completable createStory(Post postLocal) {
+        DatabaseReference ref = FirebaseDatabase.getInstance($BASE_URL).getReference()
+                .child(DataPaths.$STORY_PATH)
+                .push();
+
+        final Post post = new Post();
+        post.setPostId(ref.getKey());
+        post.setAuthorId(postLocal.getAuthorId());
+        post.setCaption(postLocal.getCaption());
+        post.setMedia(postLocal.getMedia());
+        post.setMediaType(postLocal.getMediaType());
+        post.setType(postLocal.getType());
+        post.setDateTime(postLocal.getDateTime());
+
+        return RxFirebaseDatabase.setValue(ref, post);
+    }
+
     public Completable deletePost(String postId) {
         Task<Void> task = FirebaseDatabase.getInstance($BASE_URL).getReference()
                 .child(DataPaths.$POSTS_PATH)
@@ -245,6 +267,10 @@ public class DabzRepository {
         return RxFirebaseDatabase.observeValueEvent(query);
     }
 
+    /**
+     * This Method has Been Decommissioned
+     * use the one below to fetch items by newest order
+    * */
     public Maybe<DataSnapshot> getPosts(int limit) {
         Log.d("FB_Q1", String.valueOf(true));
         Query query = FirebaseDatabase.getInstance($BASE_URL).getReference()

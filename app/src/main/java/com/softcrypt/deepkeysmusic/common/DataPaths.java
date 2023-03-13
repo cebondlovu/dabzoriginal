@@ -5,6 +5,7 @@ public class DataPaths {
     public static final String $KEYS_PATH = "Keys";
     public static final String $USERS_PATH = "Users";
     public static final String $POSTS_PATH = "Posts";
+    public static final String $STORY_PATH = "Stories";
     public static final String $MEDIA_PATH = "MediaUrls";
     public static final String $LIKES_PATH = "Likes";
     //public static final String $COMMENTS_PATH = "Comments";

@@ -82,39 +82,33 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.ViewHolder> {
     public void onBindViewHolder(@NonNull ViewHolder holder, final int position) {
         Post post = postList.get(holder.getBindingAdapterPosition());
 
-        //if (!homeViewModel.getLoadedPosts().contains(post)) {
-            getProfileInfo(holder.name, holder.username, holder.profileImg, holder.verified, post);
-            isLiked(post, holder.flameImg, holder.flameCount);
-            if (post.getMediaType().equals(Common.IMAGE))
-                Picasso.get().load(post.getMedia()).into(holder.postMedia);
-            holder.dateTime.setText(getTimeAgo(post.getDateTime()));
-            theresComments(post, holder.commentCount, holder.commentImg);
-            holder.caption.setText(post.getCaption());
-            holder.flameImg.setTag("like");
+        getProfileInfo(holder.name, holder.username, holder.profileImg, holder.verified, post);
+        isLiked(post, holder.flameImg, holder.flameCount);
+        if (post.getMediaType().equals(Common.IMAGE))
+            Picasso.get().load(post.getMedia()).into(holder.postMedia);
+        holder.dateTime.setText(getTimeAgo(post.getDateTime()));
+        theresComments(post, holder.commentCount, holder.commentImg);
+        holder.caption.setText(post.getCaption());
+        holder.flameImg.setTag("");
 
-            holder.flameImg.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    if (holder.flameImg.getTag().equals("like")) {
-                        likePost(post, firebaseUser.getUid(), holder.flameImg, holder.flameCount);
-                        sendNotification(post.getPostId(), post.getAuthorId());
-                    } else {
-                        unlikePost(post, firebaseUser.getUid(), holder.flameImg, holder.flameCount);
-                    }
-                }
-            });
+        holder.flameImg.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                likePost(post, firebaseUser.getUid(), holder.flameImg, holder.flameCount);
+            }
+        });
 
-            holder.commentImg.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    Intent intent = new Intent(context, CommentAct.class);
-                    intent.putExtra(ParseData.$POST_ID, post.getPostId());
-                    intent.putExtra(ParseData.$AUTHOR_ID, post.getAuthorId());
-                    context.startActivity(intent);
-                }
-            });
-        //}
+        holder.commentImg.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(context, CommentAct.class);
+                intent.putExtra(ParseData.$POST_ID, post.getPostId());
+                intent.putExtra(ParseData.$AUTHOR_ID, post.getAuthorId());
+                context.startActivity(intent);
+            }
+        });
 
+        isLiked(post, holder.flameImg, holder.flameCount);
     }
 
     @Override
@@ -156,7 +150,6 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.ViewHolder> {
         postList.clear();
         notifyDataSetChanged();
     }
-
 
     public void addAll(List<Post> newPosts) {
         //int initialSize = postList.size();
@@ -232,16 +225,28 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.ViewHolder> {
     }
 
     private void likePost(Post post, String uid, ImageView imageView, TextView textView) {
+        if(imageView.getTag().equals("like")) {
+            homeViewModel.likePost(post.getPostId(), uid);
+            sendNotification(post.getPostId(), post.getAuthorId());
+            imageView.setImageResource(R.drawable.ic_twotone_local_fire_department_24);
+            imageView.setTag("liked");
+        } else {
+            homeViewModel.unlike(post.getPostId(), uid);
+            imageView.setImageResource(R.drawable.ic_outline_local_fire_department_24);
+            imageView.setTag("like");
+        }
+        isLiked(post, imageView, textView);
+    }
+
+/*    private void likePost(Post post, String uid, ImageView imageView, TextView textView) {
         homeViewModel.likePost(post.getPostId(), uid);
         isLiked(post, imageView, textView);
     }
 
     private void unlikePost(Post post, String uid, ImageView imageView, TextView textView) {
-        imageView.setImageResource(R.drawable.ic_outline_local_fire_department_24);
-        imageView.setTag("like");
         homeViewModel.unlike(post.getPostId(), uid);
         isLiked(post, imageView, textView);
-    }
+    }*/
 
     @SuppressLint("SetTextI18n")
     private void isLiked(Post post, ImageView imageView, TextView text) {
@@ -257,8 +262,13 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.ViewHolder> {
 
                 for (DataSnapshot snapshot : isLikedSnap.child(DataPaths.$LIKED).getChildren()) {
                     if (Objects.equals(snapshot.getKey(), firebaseUser.getUid())) {
-                        imageView.setImageResource(R.drawable.ic_twotone_local_fire_department_24);
-                        imageView.setTag("liked");
+                        if(imageView.getTag().equals("") || imageView.getTag().equals("like")) {
+                            imageView.setImageResource(R.drawable.ic_twotone_local_fire_department_24);
+                            imageView.setTag("liked");
+                        }
+                    } else {
+                        imageView.setImageResource(R.drawable.ic_outline_local_fire_department_24);
+                        imageView.setTag("like");
                     }
                 }
             }

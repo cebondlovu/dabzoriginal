@@ -32,10 +32,14 @@ import com.squareup.picasso.Picasso;
 import com.theartofdev.edmodo.cropper.CropImage;
 import com.theartofdev.edmodo.cropper.CropImageView;
 
+import java.util.concurrent.atomic.AtomicBoolean;
+
 import javax.inject.Inject;
 
 import de.hdodenhof.circleimageview.CircleImageView;
+import io.reactivex.functions.Consumer;
 import io.realm.Realm;
+import retrofit2.Callback;
 
 public class ProfileFrag extends Fragment {
 
@@ -179,14 +183,17 @@ public class ProfileFrag extends Fragment {
                     if (user.getWebsite() == null)
                         websiteTxt.setVisibility(View.GONE);
                     else websiteTxt.setText(user.getWebsite());
-                    if (isVerified())
-                        verifiedImg.setVisibility(View.VISIBLE);
+                    isVerified(verified -> {
+                        if (verified)
+                            verifiedImg.setVisibility(View.VISIBLE);
+                    });
+
                 }
             }
         });
     }
 
-    private boolean isVerified() {
+/*    private boolean isVerified() {
         profileViewModel.getProfileVerified(firebaseUser.getUid()).observe(requireActivity(), verifiedSnap -> {
             if(verifiedSnap.exists()) {
                 for (DataSnapshot snapshot : verifiedSnap.getChildren()) {
@@ -197,5 +204,24 @@ public class ProfileFrag extends Fragment {
             } else isVerified = verifiedSnap.exists();
         });
         return isVerified;
+    }*/
+
+    private void isVerified(Consumer<Boolean> callback) {
+        AtomicBoolean isVerified = new AtomicBoolean(false); // or null
+        profileViewModel.getProfileVerified(firebaseUser.getUid()).observe(requireActivity(), verifiedSnap -> {
+            try {
+                if (verifiedSnap.exists()) {
+                    Verified verified = verifiedSnap.getChildren().iterator().next().getValue(Verified.class);
+                    assert verified != null;
+                    isVerified.set(verified.isVerified());
+                }
+                callback.accept(isVerified.get());
+            } catch (Exception e) {
+
+            }
+
+        });
     }
+
+
 }
