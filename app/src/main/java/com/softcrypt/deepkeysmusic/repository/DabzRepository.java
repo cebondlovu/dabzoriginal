@@ -9,16 +9,19 @@ import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.Query;
 import com.google.firebase.database.ServerValue;
+import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
 import com.softcrypt.deepkeysmusic.common.Common;
 import com.softcrypt.deepkeysmusic.common.DataPaths;
 import com.softcrypt.deepkeysmusic.model.Authentication;
+import com.softcrypt.deepkeysmusic.model.Comment;
 import com.softcrypt.deepkeysmusic.model.DecEnc;
 import com.softcrypt.deepkeysmusic.model.MediaUrl;
 import com.softcrypt.deepkeysmusic.model.Post;
@@ -231,6 +234,18 @@ public class DabzRepository {
         return RxFirebaseDatabase.setValue(ref, post);
     }
 
+    public Completable createComment(Comment comment, String postId) {
+        DatabaseReference ref = FirebaseDatabase.getInstance($BASE_URL).getReference()
+                .child(DataPaths.$POSTS_PATH)
+                .child(postId)
+                .child(DataPaths.$Comments)
+                .push();
+
+        comment.setCommentId(ref.getKey());
+
+        return RxFirebaseDatabase.setValue(ref, comment);
+    }
+
     public Completable deletePost(String postId) {
         Task<Void> task = FirebaseDatabase.getInstance($BASE_URL).getReference()
                 .child(DataPaths.$POSTS_PATH)
@@ -327,7 +342,7 @@ public class DabzRepository {
         return RxFirebaseDatabase.setValue(reference, map);
     }
 
-    public Completable createComment(String comment,String type, String userId, String postId) {
+/*    public Completable createComment(String comment,String type, String userId, String postId) {
         HashMap<String,Object> map = new HashMap<>();
 
         DatabaseReference ref = FirebaseDatabase.getInstance($BASE_URL).getReference()
@@ -343,7 +358,7 @@ public class DabzRepository {
         map.put("publisher", userId);
 
         return RxFirebaseDatabase.setValue(ref.child(id), map);
-    }
+    }*/
 
     public Completable createReply(String comment, String type, String userId, String postId, String commentId) {
         HashMap<String , Object> map = new HashMap<>();
@@ -365,13 +380,60 @@ public class DabzRepository {
         return RxFirebaseDatabase.setValue(ref.child(id), map);
     }
 
+    /**
+     * this method gets the comments
+     * */
+    public Flowable<DataSnapshot> getComments(String postId, int page, int pageSize) {
+        int offset = page * pageSize;
+        Query query = FirebaseDatabase.getInstance($BASE_URL).getReference()
+                .child(DataPaths.$POSTS_PATH)
+                .child(postId)
+                .child(DataPaths.$Comments)
+                .orderByChild("dateTime")
+                .endAt(System.currentTimeMillis())
+                .limitToLast(offset);
+
+        return RxFirebaseDatabase.observeValueEvent(query, BackpressureStrategy.LATEST);
+    }
+
+
+    /**
+     * This Method only checks if comments exist for the post
+     * */
     public Flowable<DataSnapshot> getComments(String postId) {
         Query query = FirebaseDatabase.getInstance($BASE_URL).getReference()
                 .child(DataPaths.$POSTS_PATH)
                 .child(postId)
                 .child(DataPaths.$Comments);
+
         return RxFirebaseDatabase.observeValueEvent(query, BackpressureStrategy.LATEST);
     }
+
+    public Single<Boolean> checkCommentsExist(String postId) {
+        DatabaseReference ref = FirebaseDatabase.getInstance($BASE_URL).getReference()
+                .child(DataPaths.$POSTS_PATH)
+                .child(postId)
+                .child(DataPaths.$Comments);
+
+        return Completable.create(emitter -> {
+            ref.addListenerForSingleValueEvent(new ValueEventListener() {
+                @Override
+                public void onDataChange(DataSnapshot dataSnapshot) {
+                    if (dataSnapshot.exists()) {
+                        emitter.onComplete();
+                    } else {
+                        emitter.onError(new Throwable("Comments datapath does not exist"));
+                    }
+                }
+
+                @Override
+                public void onCancelled(DatabaseError databaseError) {
+                    emitter.onError(databaseError.toException());
+                }
+            });
+        }).toSingleDefault(true).onErrorReturnItem(false);
+    }
+
 
     public Flowable<DataSnapshot> getReplies(String postId, String commentId) {
         Query query = FirebaseDatabase.getInstance($BASE_URL).getReference()

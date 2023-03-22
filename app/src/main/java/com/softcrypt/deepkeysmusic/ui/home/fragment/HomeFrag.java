@@ -64,8 +64,6 @@ public class HomeFrag extends Fragment {
     private HomeViewModel homeViewModel;
     private DisplayableError displayableError;
 
-    private HashMap<String, String> loadedPostList = new HashMap<>();
-
     @RequiresApi(api = Build.VERSION_CODES.M)
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -131,7 +129,7 @@ public class HomeFrag extends Fragment {
         swipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
             public void onRefresh() {
-                getMorePost();
+                getPost();
             }
 
         });
@@ -170,13 +168,13 @@ public class HomeFrag extends Fragment {
                     if ((mVisibleItemCount + mFirstVisibleItemPosition) >= mTotalItemCount
                         && mFirstVisibleItemPosition >= 0 && mTotalItemCount >= mPageSize) {
                         mPageSize++;
-                        getMorePost();
+                        getPost();
                     }
                 }
             }
         });
 
-        getMorePost();
+        getPost();
 
         return v;
     }
@@ -192,10 +190,10 @@ public class HomeFrag extends Fragment {
         return runnable;
     }
 
-    private void getMorePost() {
+    private void getPost() {
         swipeRefreshLayout.setRefreshing(true);
         mIsLoading = true;
-        if(homeViewModel.getMorePosts(mPostsPerPage, mPageSize)) {
+        if(homeViewModel.getPosts(mPostsPerPage, mPageSize)) {
             swipeRefreshLayout.setRefreshing(false);
             mIsLoading = false;
         }

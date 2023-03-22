@@ -152,15 +152,13 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.ViewHolder> {
     }
 
     public void addAll(List<Post> newPosts) {
-        //int initialSize = postList.size();
         for(Post post : newPosts) {
             if(!homeViewModel.getLoadedPosts().contains(post.getPostId())) {
                 postList.add(post);
             }
-            //postList.addAll(newPosts);
         }
+
         notifyDataSetChanged();
-        //notifyItemRangeInserted(initialSize, newPosts.size());
     }
 
     public String getLastItemId() {

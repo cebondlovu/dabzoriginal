@@ -71,11 +71,6 @@ public class HomeViewModel extends AndroidViewModel {
         return userInfoResult;
     }
 
-    public LiveData<DataSnapshot> getPostResult(int mLimit) {
-        getPosts(mLimit);
-        return postResult;
-    }
-
     public LiveData<List<Post>> getPostLiveData() {
         return morePostResult;
     }
@@ -173,42 +168,7 @@ public class HomeViewModel extends AndroidViewModel {
         }));
     }
 
-    private void getPosts(int mLimit) {
-        homeDisposable.add(dabzRepository.getPosts(mLimit)
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new Consumer<DataSnapshot>() {
-                    @Override
-                    public void accept(DataSnapshot dataSnapshot) throws Exception {
-                        postResult.setValue(dataSnapshot);
-                        homeDisposable.clear();
-                    }
-                }));
-    }
-
-/*    public void getMorePosts(int page, int pageSize) {
-        homeDisposable.add(dabzRepository.getMorePosts(page, pageSize)
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new Consumer<DataSnapshot>() {
-                    @Override
-                    public void accept(DataSnapshot dataSnapshot) throws Exception {
-                        List<Post> posts = new ArrayList<>();
-                        for(DataSnapshot snapshot : dataSnapshot.getChildren()) {
-                            Post post = snapshot.getValue(Post.class);
-                            if(!loadedPosts.contains(post)) {
-                                posts.add(post);
-                                loadedPosts.add(post);
-                            }
-                        }
-
-                        morePostResult.setValue(posts);
-                         homeDisposable.clear();
-                    }
-                }));
-    }*/
-
-    public boolean getMorePosts(int page, int pageSize) {
+    public boolean getPosts(int page, int pageSize) {
         AtomicBoolean isDone = new AtomicBoolean(false);
         homeDisposable.add(dabzRepository.getMorePosts(page, pageSize)
                 .subscribeOn(Schedulers.io())

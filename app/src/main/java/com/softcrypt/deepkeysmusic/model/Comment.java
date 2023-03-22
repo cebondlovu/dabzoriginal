@@ -18,6 +18,9 @@ public class Comment {
     @SerializedName("publisherId")
     public String publisherId;
 
+    @SerializedName("dateTime")
+    private long dateTime;
+
     @SerializedName("replies")
     public List<String> replies;
 
@@ -51,6 +54,14 @@ public class Comment {
 
     public void setPublisherId(String publisherId) {
         this.publisherId = publisherId;
+    }
+
+    public long getDateTime() {
+        return dateTime;
+    }
+
+    public void setDateTime(long dateTime) {
+        this.dateTime = dateTime;
     }
 
     public List<String> getReplies() {

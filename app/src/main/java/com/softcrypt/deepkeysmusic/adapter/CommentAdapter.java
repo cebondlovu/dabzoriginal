@@ -26,7 +26,9 @@ import com.softcrypt.deepkeysmusic.viewModels.HomeViewModel;
 
 import java.text.DecimalFormat;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import de.hdodenhof.circleimageview.CircleImageView;
 
@@ -107,10 +109,19 @@ public class CommentAdapter extends RecyclerView.Adapter<CommentAdapter.ViewHold
         return position;
     }
 
+    public void clear() {
+        commentList.clear();
+        notifyDataSetChanged();
+    }
+
     public void addAll(List<Comment> newComments) {
-        int initialSize = commentList.size();
-        commentList.addAll(newComments);
-        notifyItemRangeInserted(initialSize, newComments.size());
+        for(Comment comment : newComments) {
+            if(!commentViewModel.getLoadedComments().contains(comment.getCommentId())) {
+                commentList.add(comment);
+            }
+        }
+
+        notifyDataSetChanged();
     }
 
     public String getLastItemId() {

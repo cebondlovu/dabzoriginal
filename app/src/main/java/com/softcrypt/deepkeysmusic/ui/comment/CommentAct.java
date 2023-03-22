@@ -2,6 +2,7 @@ package com.softcrypt.deepkeysmusic.ui.comment;
 
 import static java.util.Observable.*;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.lifecycle.ViewModelProvider;
@@ -21,6 +22,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.CountDownTimer;
 import android.os.Environment;
+import android.os.Handler;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.text.format.DateUtils;
@@ -35,6 +37,7 @@ import android.widget.TextView;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DataSnapshot;
 import com.hendraanggrian.appcompat.widget.SocialAutoCompleteTextView;
 import com.hendraanggrian.appcompat.widget.SocialEditText;
 import com.softcrypt.deepkeysmusic.R;
@@ -42,9 +45,13 @@ import com.softcrypt.deepkeysmusic.adapter.CommentAdapter;
 import com.softcrypt.deepkeysmusic.adapter.PostAdapter;
 import com.softcrypt.deepkeysmusic.base.BaseActivity;
 import com.softcrypt.deepkeysmusic.base.BaseApplication;
+import com.softcrypt.deepkeysmusic.common.Common;
 import com.softcrypt.deepkeysmusic.common.DisplayableError;
+import com.softcrypt.deepkeysmusic.common.NavigationTypes;
 import com.softcrypt.deepkeysmusic.common.ParseData;
 import com.softcrypt.deepkeysmusic.model.Comment;
+import com.softcrypt.deepkeysmusic.model.Post;
+import com.softcrypt.deepkeysmusic.model.PostLocal;
 import com.softcrypt.deepkeysmusic.tools.InternetConnected;
 import com.softcrypt.deepkeysmusic.viewModels.CommentViewModel;
 import com.softcrypt.deepkeysmusic.viewModels.MainViewModel;
@@ -56,8 +63,11 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Objects;
 import java.util.Random;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
@@ -72,6 +82,8 @@ import io.reactivex.Observer;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.CompositeDisposable;
 import io.reactivex.disposables.Disposable;
+import io.reactivex.functions.Action;
+import io.reactivex.schedulers.Schedulers;
 
 public class CommentAct extends BaseActivity implements LoaderManager.LoaderCallbacks<Boolean> {
 
@@ -95,25 +107,28 @@ public class CommentAct extends BaseActivity implements LoaderManager.LoaderCall
     MediaPlayer mediaPlayer;
     File asd;
     CountDownTimer cdTimer;
+    private String commentStr = null;
+
+    private int mTotalItemCount = 0;
+    private int mFirstVisibleItemPosition;
+    private int mVisibleItemCount;
+    private boolean mIsLoading = false, mIsLastPage = false;
+    private int mCommentsPerPage = 10, count = 0, mPageSize = 1;
 
     @Inject
     ViewModelProvider.Factory viewModelFactory;
     public static CommentViewModel commentViewModel;
 
-    private int mTotalItemCount = 0;
-    private int mLastVisibleItemPosition;
-    private boolean mIsLoading = false;
-    private int mCommentsPerPage = 4, count = 0;
+    Handler handler;
 
-    private HashMap<String, String> loadedCommentsList = new HashMap<>();
 
     @Override
     protected void onStart() {
         super.onStart();
         requestPermission("All");
-        Intent intent = getIntent();
+/*        Intent intent = getIntent();
         postId = intent.getStringExtra(ParseData.$POST_ID);
-        authorId = intent.getStringExtra(ParseData.$AUTHOR_ID);
+        authorId = intent.getStringExtra(ParseData.$AUTHOR_ID);*/
         firebaseUser = FirebaseAuth.getInstance().getCurrentUser();
         displayableError = DisplayableError.getInstance(this);
 
@@ -130,6 +145,10 @@ public class CommentAct extends BaseActivity implements LoaderManager.LoaderCall
         commentViewModel = new ViewModelProvider(this, viewModelFactory)
                 .get(CommentViewModel.class);
         recordingContainer = findViewById(R.id.recording_container_c);
+
+        Intent intent = getIntent();
+        postId = intent.getStringExtra(ParseData.$POST_ID);
+        authorId = intent.getStringExtra(ParseData.$AUTHOR_ID);
 
         deleteRecordingImg = findViewById(R.id.delete_recording_c_img);
         deleteRecordingImg.setOnClickListener(this::deleteComment);
@@ -166,6 +185,19 @@ public class CommentAct extends BaseActivity implements LoaderManager.LoaderCall
         commentAdapter = new CommentAdapter(commentViewModel, this, this);
         commentsRecycler.setAdapter(commentAdapter);
 
+/*        commentViewModel.getCommentLiveData().observe(this, comments -> {
+            Collections.sort(comments, new Comparator<Comment>() {
+                @Override
+                public int compare(Comment comment, Comment t1) {
+                    return Long.compare(t1.getDateTime(), comment.getDateTime());
+                }
+            });
+            commentAdapter.clear();
+            commentAdapter.addAll(comments);
+            mIsLoading = false;
+            //swipeRefreshLayout.setRefreshing(false);
+        });*/
+
         noCommentsTxt = findViewById(R.id.no_comments_c_txt);
 
         commentEdt = findViewById(R.id.comment_c_edt);
@@ -195,7 +227,62 @@ public class CommentAct extends BaseActivity implements LoaderManager.LoaderCall
             }
         });
 
+        commentsRecycler.addOnScrollListener(new RecyclerView.OnScrollListener() {
+
+            @Override
+            public void onScrollStateChanged(@NonNull RecyclerView recyclerView, int newState) {
+                super.onScrollStateChanged(recyclerView, newState);
+                switch (newState) {
+                    case RecyclerView.SCROLL_STATE_IDLE:
+                        //handler.postDelayed(getViewRunnable(), 5000);
+                        break;
+                    case RecyclerView.SCROLL_STATE_DRAGGING:
+                        //handler.removeCallbacks(runnable);
+                        //storyNested.setVisibility(View.GONE);
+                        Log.d("FB_ART", "DRAGGING");//12
+                        break;
+                    case RecyclerView.SCROLL_STATE_SETTLING:
+                        Log.d("FB_ART", "Settling");//12
+                        break;
+
+                }
+            }
+
+            @Override
+            public void onScrolled(@NonNull RecyclerView recyclerView, int dx, int dy) {
+                super.onScrolled(recyclerView, dx, dy);
+
+                mVisibleItemCount = mLayoutManager.getChildCount();
+                mTotalItemCount = mLayoutManager.getItemCount();
+                mFirstVisibleItemPosition = mLayoutManager.findFirstVisibleItemPosition();
+                displayableError.createToastMessage(""+(mTotalItemCount), 1);
+
+                if(!mIsLoading && !mIsLastPage) {
+                    if ((mVisibleItemCount + mFirstVisibleItemPosition) >= mTotalItemCount
+                            && mFirstVisibleItemPosition >= 0 && mTotalItemCount >= mPageSize) {
+                        mPageSize++;
+                        //if(commentViewModel.theresComments(postId)) {
+                            //getComments();
+                        //}
+                    }
+                }
+            }
+        });
+
         getLoaderManager().initLoader(LDR_BASIC_ID, Bundle.EMPTY, this);
+
+        //if(commentViewModel.theresComments(postId)) {
+            //getComments();
+        //}
+    }
+
+    private void getComments() {
+        //swipeRefreshLayout.setRefreshing(true);
+        mIsLoading = true;
+        if(commentViewModel.getComments(postId,mCommentsPerPage, mPageSize)) {
+            //swipeRefreshLayout.setRefreshing(false);
+            mIsLoading = false;
+        }
     }
 
     private void deleteComment(View view) {
@@ -244,8 +331,22 @@ public class CommentAct extends BaseActivity implements LoaderManager.LoaderCall
             commentEdt.setVisibility(View.VISIBLE);
         }
 
-        if(commentEdt.length() > 0)
-            commentEdt.setText("");
+        if(commentEdt.length() > 0) {
+            //commentEdt.setText("");
+        }
+
+        createComment();
+    }
+
+    private void createComment() {
+        Comment comment = new Comment();
+        comment.setCommentId(null);
+        comment.setComment(commentEdt.getText().toString());
+        comment.setCommentType(NavigationTypes.$TEXT);
+        comment.setPublisherId(firebaseUser.getUid());
+        comment.setDateTime(System.currentTimeMillis());
+
+        commentViewModel.commentStatus(comment, postId);
     }
 
     @RequiresApi(api = Build.VERSION_CODES.O)
@@ -328,15 +429,6 @@ public class CommentAct extends BaseActivity implements LoaderManager.LoaderCall
         cdTimer.start();
     }
 
-/*    private void obstartAnime(ProgressBar recordingProgress) {
-        asdd = Observable.interval(100, TimeUnit.MILLISECONDS)
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(aLong -> {
-                    int amp = mediaRecorder.getMaxAmplitude();
-                    recordingProgress.setProgress((int) Math.sqrt(amp));
-                });
-    }*/
-
     private void showAnimation(ProgressBar rProgress) {
         cdTimer = new CountDownTimer(180000,1000) {
             Random random = new Random();
@@ -371,13 +463,6 @@ public class CommentAct extends BaseActivity implements LoaderManager.LoaderCall
 
     }
 
-/*    private void getAuthorInfo() {
-
-    }*/
-
-/*    private void getComments() {
-
-    }*/
 
     private void initUI() {
         if (result) {
